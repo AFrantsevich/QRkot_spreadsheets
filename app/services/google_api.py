@@ -1,41 +1,21 @@
-from datetime import datetime
-
 from aiogoogle import Aiogoogle
 
 from app.core.config import settings
 
 from aiogoogle.excs import HTTPError
 
-FORMAT = "%Y/%m/%d %H:%M:%S"
+from app.services.constants import (TABLE_VALUES,
+                                    RANGE_SPREADSHEET,
+                                    TYPE_OF_INTERPRETER)
 
-ROW_COUNT = 100
-COLUMN_COUNT = 11
-NOW_DATE_TIME = datetime.now().strftime(FORMAT)
-
-TABLE_VALUES = [
-    ['Отчет от', NOW_DATE_TIME],
-    ['Топ проектов по скорости закрытия'],
-    ['Название проекта', 'Время сбора', 'Описание']
-]
-
-
-def spreadsheet_body():
-    return {
-        'properties': {'title': f'Отчет от {NOW_DATE_TIME}',
-                       'locale': 'ru_RU'},
-        'sheets': [{'properties': {'sheetType': 'GRID',
-                                   'sheetId': 0,
-                                   'title': 'Лист1',
-                                   'gridProperties': {'rowCount': ROW_COUNT,
-                                                      'columnCount': COLUMN_COUNT}}}]
-    }
+from app.services.tools import get_spreadsheet_body
 
 
 async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
     service = await wrapper_services.discover('sheets', 'v4')
 
     response = await wrapper_services.as_service_account(
-        service.spreadsheets.create(json=spreadsheet_body())
+        service.spreadsheets.create(json=get_spreadsheet_body())
     )
     spreadsheetid = response['spreadsheetId']
     return spreadsheetid
@@ -75,8 +55,8 @@ async def spreadsheets_update_value(
         await wrapper_services.as_service_account(
             service.spreadsheets.values.update(
                 spreadsheetId=spreadsheetid,
-                range='A1:E30',
-                valueInputOption='USER_ENTERED',
+                range=RANGE_SPREADSHEET,
+                valueInputOption=TYPE_OF_INTERPRETER,
                 json=update_body
             ))
     except HTTPError:

@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from aiogoogle import Aiogoogle
 
 from app.core.config import settings
@@ -42,7 +44,7 @@ async def spreadsheets_update_value(
         wrapper_services: Aiogoogle
 ) -> None:
     service = await wrapper_services.discover('sheets', 'v4')
-    table_values = TABLE_VALUES[:]
+    table_values = deepcopy(TABLE_VALUES)
     [table_values.append([str(project.name),
                           str(project.close_date - project.create_date),
                           str(project.description)])
